@@ -1,0 +1,42 @@
+name: Manage GitHub Access Based on Subscription Plan
+
+on:
+  repository_dispatch:
+    types: [web_basic_access, web_premium_access, revoke_web_basic_access, revoke_web_premium_access]
+
+jobs:
+  manage-access:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check subscription plan and manage access
+        run: |
+          if [[ "${{ github.event.action }}" == "web_basic_access" ]]; then
+            echo "Granting basic access..."
+            # Add user to basic repositories
+            curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/orgs/SaaSBerryIO/invitations \
+            -d '{"email": "${{ github.event.client_payload.email }}", "repositories": ["repo1", "repo2"]}'
+          
+          elif [[ "${{ github.event.action }}" == "web_premium_access" ]]; then
+            echo "Granting premium access..."
+            # Add user to premium repositories
+            curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/orgs/SaaSBerryIO/invitations \
+            -d '{"email": "${{ github.event.client_payload.email }}", "repositories": ["repo3", "repo4"]}'
+          
+          elif [[ "${{ github.event.action }}" == "revoke_web_basic_access" ]]; then
+            echo "Revoking basic access..."
+            # Remove user from basic repositories
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/orgs/SaaSBerryIO/memberships/${{ github.event.client_payload.username }}
+          
+          elif [[ "${{ github.event.action }}" == "revoke_web_premium_access" ]]; then
+            echo "Revoking premium access..."
+            # Remove user from premium repositories
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/orgs/SaaSBerryIO/memberships/${{ github.event.client_payload.username }}
