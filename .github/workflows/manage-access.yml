@@ -11,46 +11,43 @@ jobs:
     steps:
       - name: Determine Event Type and Manage Access
         run: |
-          # Extract email from the billing object in the payload
           EMAIL="${{ github.event.client_payload.billing.email }}"
           echo "User email: $EMAIL"
-
-          # Get event type from headers to determine if it's a cancellation or creation event
+          
           EVENT_TYPE="${{ github.event.headers['x-wc-webhook-topic'] }}"
+          echo "Event type: $EVENT_TYPE"
 
-          # Loop through each line item to manage access based on subscription items
-          for item in "${{ toJson(github.event.client_payload.line_items) }}"; do
-            ITEM_NAME=$(echo "$item" | jq -r '.name')
+          for item in $(echo "${{ github.event.client_payload.line_items }}" | jq -r '.[] | @base64'); do
+            _jq() {
+              echo ${item} | base64 --decode | jq -r ${1}
+            }
+
+            ITEM_NAME=$(_jq '.name')
+            echo "Processing item: $ITEM_NAME"
 
             if [[ "$EVENT_TYPE" == "subscription.created" || "$EVENT_TYPE" == "subscription.renewed" ]]; then
-              # Grant access based on subscription item names
               if [[ "$ITEM_NAME" == "Basic Module" ]]; then
                 echo "Granting access to basic repositories..."
                 curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
                 https://api.github.com/orgs/SaaSBerryIO/invitations \
                 -d "{\"email\": \"$EMAIL\", \"repositories\": [\"web-framework\"]}"
-
               elif [[ "$ITEM_NAME" == "Premium Module" ]]; then
                 echo "Granting access to premium repositories..."
                 curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
                 https://api.github.com/orgs/SaaSBerryIO/invitations \
                 -d "{\"email\": \"$EMAIL\", \"repositories\": [\"premium-repo\"]}"
-
               elif [[ "$ITEM_NAME" == "Advanced Module" ]]; then
                 echo "Granting access to advanced repositories..."
                 curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
                 https://api.github.com/orgs/SaaSBerryIO/invitations \
                 -d "{\"email\": \"$EMAIL\", \"repositories\": [\"advanced-repo\"]}"
-
               else
                 echo "Unknown subscription item: $ITEM_NAME"
               fi
-
             elif [[ "$EVENT_TYPE" == "subscription.cancelled" ]]; then
-              # Revoke access based on subscription item names
               echo "Revoking access due to subscription cancellation..."
 
               if [[ "$ITEM_NAME" == "Basic Module" ]]; then
@@ -58,19 +55,16 @@ jobs:
                 curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
                 https://api.github.com/orgs/SaaSBerryIO/memberships/${{ github.event.client_payload.username }}
-
               elif [[ "$ITEM_NAME" == "Premium Module" ]]; then
                 echo "Revoking access to premium repositories..."
                 curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
                 https://api.github.com/orgs/SaaSBerryIO/memberships/${{ github.event.client_payload.username }}
-
               elif [[ "$ITEM_NAME" == "Advanced Module" ]]; then
                 echo "Revoking access to advanced repositories..."
                 curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Accept: application/vnd.github.v3+json" \
                 https://api.github.com/orgs/SaaSBerryIO/memberships/${{ github.event.client_payload.username }}
-
               else
                 echo "Unknown subscription item for revocation: $ITEM_NAME"
               fi
