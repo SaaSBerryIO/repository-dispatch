@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Check subscription plan and manage access
         run: |
+          echo "Email: " + "${{ github.event.client_payload.email }}" + " type: " + "${{ github.event.action }}"
           if [[ "${{ github.event.action }}" == "web_basic_access" ]]; then
             echo "Granting basic access..."
             # Add user to basic repositories
