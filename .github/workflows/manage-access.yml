@@ -15,10 +15,10 @@ jobs:
     steps:
       - name: Determine Event Type and Manage Access
         env:
-          EMAIL: "${{ github.event.client_payload.github_email }}"
+          GITHUB_USERNAME: "${{ github.event.client_payload.github_username }}"
           LINE_ITEMS_JSON: "${{ toJson(github.event.client_payload.line_items) }}"
         run: |
-          echo "User email: $EMAIL"
+          echo "Github username: $GITHUB_USERNAME"
 
           # Check if LINE_ITEMS_JSON is populated correctly
           if [ -z "$LINE_ITEMS_JSON" ]; then
@@ -48,7 +48,7 @@ jobs:
                 -H "Accept: application/vnd.github+json" \
                 -H "Authorization: Bearer ${{ secrets.ORG_ACCESS_TOKEN }}" \
                 -H "X-GitHub-Api-Version: 2022-11-28" \
-                https://api.github.com/repos/SaaSBerryIO/fe-framework/collaborators/$EMAIL \
+                https://api.github.com/repos/SaaSBerryIO/fe-framework/collaborators/$GITHUB_USERNAME \
                 -d '{"permission":"pull"}'
 
             elif [[ "$ITEM_NAME" == "Premium Module" ]]; then
@@ -62,7 +62,7 @@ jobs:
                   -H "Accept: application/vnd.github+json" \
                   -H "Authorization: Bearer ${{ secrets.ORG_ACCESS_TOKEN }}" \
                   -H "X-GitHub-Api-Version: 2022-11-28" \
-                  https://api.github.com/repos/SaaSBerryIO/$REPO/collaborators/$EMAIL \
+                  https://api.github.com/repos/SaaSBerryIO/$REPO/collaborators/$GITHUB_USERNAME \
                   -d '{"permission":"pull"}'
               done
 
