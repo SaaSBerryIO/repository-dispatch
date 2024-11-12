@@ -18,13 +18,25 @@ jobs:
           echo "User email: $EMAIL"
           echo "Event type: $EVENT_TYPE"
 
-          # Decode each line item safely by processing JSON from the payload directly
-          for ITEM in $(echo "$LINE_ITEMS_JSON" | jq -c '.[]' | base64); do
-            _jq() {
-              echo "${ITEM}" | base64 --decode | jq -r "$1"
-            }
+          # Check if LINE_ITEMS_JSON is populated correctly
+          if [ -z "$LINE_ITEMS_JSON" ]; then
+            echo "Error: LINE_ITEMS_JSON is empty"
+            exit 1
+          else
+            echo "Line items JSON: $LINE_ITEMS_JSON"
+          fi
 
-            ITEM_NAME=$(_jq '.name')
+          # Validate JSON structure before processing
+          if echo "$LINE_ITEMS_JSON" | jq empty; then
+            echo "JSON structure is valid."
+          else
+            echo "Error: Invalid JSON structure in LINE_ITEMS_JSON"
+            exit 1
+          fi
+
+          # Decode each line item safely by processing JSON from the payload directly
+          echo "$LINE_ITEMS_JSON" | jq -c '.[]' | while read -r ITEM; do
+            ITEM_NAME=$(echo "$ITEM" | jq -r '.name')
             echo "Processing item: $ITEM_NAME"
 
             if [[ "$EVENT_TYPE" == "subscription.created" || "$EVENT_TYPE" == "subscription.renewed" ]]; then
