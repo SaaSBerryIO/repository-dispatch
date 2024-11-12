@@ -2,7 +2,7 @@ name: Manage GitHub Access Based on Subscription Plan
 
 on:
   repository_dispatch:
-    types: [ webhook_event ]
+    types: [webhook_event]
 
 jobs:
   manage-access:
@@ -11,15 +11,20 @@ jobs:
     steps:
       - name: Determine Event Type and Manage Access
         run: |
+          # Extract email and event type from the webhook payload
           EMAIL="${{ github.event.client_payload.billing.email }}"
           echo "User email: $EMAIL"
 
           EVENT_TYPE="${{ github.event.headers['x-wc-webhook-topic'] }}"
           echo "Event type: $EVENT_TYPE"
 
-          for ITEM in $(echo "${{ toJson(github.event.client_payload.line_items) }}" | jq -r '.[] | @base64'); do
+          # Loop through each item in the dynamically received line items
+          LINE_ITEMS_JSON="${{ toJson(github.event.client_payload.line_items) }}"
+          
+          # Process each item from line items by encoding it with base64
+          for ITEM in $(echo "$LINE_ITEMS_JSON" | jq -c '.[]' | base64); do
             _jq() {
-              echo ${ITEM} | base64 --decode | jq -r ${1}
+              echo "${ITEM}" | base64 --decode | jq -r "$1"
             }
 
             ITEM_NAME=$(_jq '.name')
