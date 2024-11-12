@@ -18,6 +18,7 @@ jobs:
           echo "User email: $EMAIL"
           echo "Event type: $EVENT_TYPE"
 
+          # Decode each line item safely by processing JSON from the payload directly
           for ITEM in $(echo "$LINE_ITEMS_JSON" | jq -c '.[]' | base64); do
             _jq() {
               echo "${ITEM}" | base64 --decode | jq -r "$1"
