@@ -11,8 +11,8 @@ jobs:
     steps:
       - name: Determine Event Type and Manage Access
         env:
-          EMAIL: "${{ github.event.client_payload.billing.email }}"
-          EVENT_TYPE: "${{ github.event.headers['x-wc-webhook-topic'] }}"
+          EMAIL: "${{ github.event.client_payload.github_email }}"
+          EVENT_TYPE: "${{ github.event.client_payload.event_type }}"
           LINE_ITEMS_JSON: "${{ toJson(github.event.client_payload.line_items) }}"
         run: |
           echo "User email: $EMAIL"
