@@ -35,7 +35,6 @@ async function addCollaborator(repo, username, permission) {
 }
 
 function authenticateToken(req, res, next) {
-  console.log('Headers: ', req.headers);
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Get token from Bearer
 
@@ -51,7 +50,6 @@ app.use('/webhook', authenticateToken);
 
 // Webhook endpoint to handle GitHub events
 app.post('/webhook', async (req, res) => {
-  console.log('Received payload:', req.body);
   const { github_username, line_items } = req.body.client_payload;
 
   if (!github_username || !line_items) {
