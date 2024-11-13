@@ -35,6 +35,7 @@ async function addCollaborator(repo, username, permission) {
 
 // Webhook endpoint to handle GitHub events
 app.post('/webhook', async (req, res) => {
+  console.log('Received payload:', req.body);
   const { github_username, line_items } = req.body.client_payload;
 
   if (!github_username || !line_items) {
