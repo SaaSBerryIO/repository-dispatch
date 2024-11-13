@@ -44,6 +44,8 @@ function authenticateToken(req, res, next) {
   next();
 }
 
+app.use('/webhook', authenticateToken);
+
 // Webhook endpoint to handle GitHub events
 app.post('/webhook', async (req, res) => {
   console.log('Received payload:', req.body);
