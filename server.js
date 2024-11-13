@@ -33,6 +33,17 @@ async function addCollaborator(repo, username, permission) {
   }
 }
 
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Get token from Bearer
+
+  if (!token || token !== process.env.WEBHOOK_TOKEN) {
+    return res.status(403).json({ message: 'Forbidden: Invalid token' });
+  }
+
+  next();
+}
+
 // Webhook endpoint to handle GitHub events
 app.post('/webhook', async (req, res) => {
   console.log('Received payload:', req.body);
