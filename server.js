@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
+require('dotenv').config();
 
 const app = express();
 const PORT = 8000;
@@ -34,10 +35,12 @@ async function addCollaborator(repo, username, permission) {
 }
 
 function authenticateToken(req, res, next) {
+  console.log('Headers: ', req.headers);
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Get token from Bearer
 
   if (!token || token !== process.env.WEBHOOK_TOKEN) {
+    console.error("Forbidden: Invalid token");
     return res.status(403).json({ message: 'Forbidden: Invalid token' });
   }
 
