@@ -61,7 +61,7 @@ app.post('/webhook', async (req, res) => {
     for (const item of line_items) {
       if (item.name === 'Basic Module') {
         // Grant access to the basic repository
-        await addCollaborator('fe-framework', github_username, 'pull');
+        await addCollaborator('saasberry-ui', github_username, 'pull');
       } else if (item.name === 'Premium Module') {
         // Grant access to each premium repository
         for (const repo of PREMIUM_REPOS) {
